@@ -1,12 +1,11 @@
-# ThirdPartyJWTAuthentication
+# JWT3PA
 
 This package wraps the boilerplate that's required when implementing Sign in with Apple and Google to your application.  
 
 
 ## Token Table
 
-Your token model should conform to `ThirdPartyJWTUserAuthenticationToken` and the corresponding table 
-should contain at least these two properties:
+Your token model should conform to `JWT3PAUserToken` and the corresponding table should contain at least these two properties:
 
 - value - text column that stores the Bearer Authorization header for this user.
 - user - Reference column to the *user* table
@@ -17,7 +16,7 @@ user a token will be automatically created for you.  It's up to you to handle an
 For example, you might have this:
 
 ```swift
-final class ProducerToken: Model, Content, ThirdPartyJWTUserAuthenticationToken {
+final class ProducerToken: Model, Content, JWT3PAUserToken {
     static let schema = "producer_tokens"
 
     @ID(key: "id")
@@ -41,7 +40,7 @@ final class ProducerToken: Model, Content, ThirdPartyJWTUserAuthenticationToken 
 
 ## User Table
 
-Your user model should conform to `ThirdPartyJWTAuthenticatedUser` and `Authenticatable`, which requires these three properties:
+Your user model should conform to `JWT3PAUser` and `Authenticatable`, which requires these three properties:
 
 - google - text column that stores Apple's unique ID
 - apple - text column that stores Google's unique ID
@@ -51,7 +50,7 @@ You'll also need a method to generate the appropriate *token* that you wish to u
 example of a full user:
 
 ```swift
-final class Producer: Model, Content, ThirdPartyJWTAuthenticatedUser, Authenticatable {
+final class Producer: Model, Content, JWT3PAUser, Authenticatable {
     static let schema = "producers"
 
     @ID(key: "id")
@@ -110,35 +109,37 @@ final class Producer: Model, Content, ThirdPartyJWTAuthenticatedUser, Authentica
 ### Registration
 
 You'll need to define the DTO that you'll use to pass in all the data you want during new user registration.  Simply conform to
-`ThirdPartyJWTAuthenticationRegisterUserDTO`.  Note you don't need to include the email address because that's
-provided in the JWT that Apple and Google give you.
+`JWT3PAUserDTO`.  Note you don't need to include the email address because that's provided in the JWT that Apple and Google give you.
 
 ```swift
-struct RegisterUserDTO: ThirdPartyJWTAuthenticationRegisterUserDTO, Content {
+struct RegisterUserDTO: JWT3PAUserDTO, Content {
     var name: String?
 }
 ```
 
-## The controller and routes
+## Routes
 
-Subclass `ThirdPartyJWTAuthenticatedUserController<T>`, where T is your user type.  Once you've done that
-you can simply setup the appropriate four routes in `routes.swift` by calling the `registerJWTAuthenticationRoutes(app:protected:)` method.  You should pass in whatever `RoutesBuilder` you are using to secure your APIs.  Four routes will be generated:
+Register your routes by calling one of these two static methods, where `T` is your user type, from `routes.swift:
 
-- .../login/apple
-- .../login/google
-- .../register/apple
-- .../register/google
+- `JWT3PAUserRoutes<T>.register(app:protected:)`
+- `JWT3PAUserRoutes<T>.register(routeGroup:protected:)`
 
-All four routes return a `String` which contains the value to use in subsequent API calls for the Bearer header.  For example:
+These routes will be generated:
+
+- /login/apple
+- /login/google
+- /register/apple
+- /register/google
+
+All four routes return a `String` which contains the value to use in subsequent API calls for the Bearer header.  If you use the
+second form of registration shown then the appropriate path prefix will be prepended to the routes. For example:
 
 ```swift
-class ProducerController: ThirdPartyJWTAuthenticatedUserController<Producer> { }
-
 func routes(_ app: Application) throws {
-    let tokenProtected = ThirdPartyJWTTokenAuthenticator<ProducerToken>.guardMiddleware(app: app)
+    let tokenProtected = JWT3PATokenAuthenticator<ProducerToken>.guardMiddleware(app: app)
 
-    let producerController = ProducerController()
-    producerController.registerJWTAuthenticationRoutes(app: app, protected: tokenProtected)
+    let users = app.grouped("users");
+    JWT3PAUserRoutes<T>.register(routeGroup: users, protected: tokenProtected)
 }
 ```
 

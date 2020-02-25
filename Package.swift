@@ -4,15 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "ThirdPartyJWTAuthentication",
+    name: "JWT3PA",
     platforms: [
         .macOS(.v10_15)
     ],
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
-            name: "ThirdPartyJWTAuthentication",
-            targets: ["ThirdPartyJWTAuthentication"]),
+            name: "JWT3PA",
+            targets: ["JWT3PA"]),
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0-beta"),
@@ -21,14 +21,14 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "ThirdPartyJWTAuthentication",
+            name: "JWT3PA",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "JWT", package: "jwt")
         ]),
         .testTarget(
-            name: "ThirdPartyJWTAuthenticationTests",
-            dependencies: ["ThirdPartyJWTAuthentication"]),
+            name: "JWT3PATests",
+            dependencies: ["JWT3PA"]),
     ]
 )

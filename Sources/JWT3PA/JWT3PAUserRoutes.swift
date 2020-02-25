@@ -2,7 +2,7 @@ import Vapor
 import Fluent
 import JWT
 
-open class ThirdPartyJWTAuthenticatedUserController<T> where T: ThirdPartyJWTAuthenticatedUser {
+open class JWT3PAUserRoutes<T> where T: JWT3PAUser {
     func appleLogin(req: Request) throws -> EventLoopFuture<String> {
         req.jwt.apple.verify().flatMap { (token: AppleIdentityToken) in
             T.apiTokenForUser(filter: \._$apple == token.subject.value, req: req)
@@ -31,15 +31,29 @@ open class ThirdPartyJWTAuthenticatedUserController<T> where T: ThirdPartyJWTAut
         }
     }
 
-    public func registerJWTAuthenticationRoutes(app: Application, protected: RoutesBuilder) {
-        app.post("register", "apple", use: self.appleRegister)
-        app.post("register", "google", use: self.googleRegister)
-        app.get("bob", use: self.bob)
+    public static func register(routeGroup: RoutesBuilder, protected: RoutesBuilder) {
+        let me = Self()
+
+        routeGroup.post("register", "apple", use: me.appleRegister)
+        routeGroup.post("register", "google", use: me.googleRegister)
+        routeGroup.get("bob", use: me.bob)
         
         let login = protected.grouped("login")
-        login.post("apple", use: self.appleLogin)
-        login.post("google", use: self.googleLogin)
+        login.post("apple", use: me.appleLogin)
+        login.post("google", use: me.googleLogin)
     }
 
-    public init() {}
+    public static func register(app: Application, protected: RoutesBuilder) {
+        let me = Self()
+
+        app.post("register", "apple", use: me.appleRegister)
+        app.post("register", "google", use: me.googleRegister)
+        app.get("bob", use: me.bob)
+        
+        let login = protected.grouped("login")
+        login.post("apple", use: me.appleLogin)
+        login.post("google", use: me.googleLogin)
+    }
+
+    private init() {}
 }

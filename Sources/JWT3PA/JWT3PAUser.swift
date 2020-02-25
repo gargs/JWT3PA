@@ -2,9 +2,9 @@ import Vapor
 import Fluent
 import JWTKit
 
-public protocol ThirdPartyJWTAuthenticatedUser: Model & Authenticatable {
-    associatedtype Token: ThirdPartyJWTUserAuthenticationToken
-    associatedtype UserDTO: ThirdPartyJWTAuthenticationRegisterUserDTO
+public protocol JWT3PAUser: Model & Authenticatable {
+    associatedtype Token: JWT3PAUserToken
+    associatedtype UserDTO: JWT3PAUserDTO
 
     var google: String? { get set }
     var apple: String? { get set }
@@ -15,7 +15,7 @@ public protocol ThirdPartyJWTAuthenticatedUser: Model & Authenticatable {
     func generateToken(req: Request) -> EventLoopFuture<Token>
 }
 
-internal extension ThirdPartyJWTAuthenticatedUser {
+internal extension JWT3PAUser {
     var _$id: ID<Int> {
         guard let mirror = Mirror(reflecting: self).descendant("_id"),
             let id = mirror as? ID<Int> else {
@@ -77,7 +77,7 @@ internal extension ThirdPartyJWTAuthenticatedUser {
     /// - Returns: The authentication token to use for subsequent API calls.
     static func createUserAndToken(req: Request,
                                    email: String?,
-                                   vendor: ThirdPartyAuthenticationVendor,
+                                   vendor: JWT3PAVendor,
                                    subject: SubjectClaim) -> EventLoopFuture<String> {
         do {
             guard let email = email else {

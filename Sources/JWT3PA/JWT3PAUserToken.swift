@@ -1,14 +1,14 @@
 import Vapor
 import Fluent
 
-public protocol ThirdPartyJWTUserAuthenticationToken: Model {
+public protocol JWT3PAUserToken: Model {
     associatedtype User: Model & Authenticatable
 
     var value: String { get set }
     var user: User { get set }
 }
 
-extension ThirdPartyJWTUserAuthenticationToken {
+extension JWT3PAUserToken {
     var _$value: Field<String> {
         guard let mirror = Mirror(reflecting: self).descendant("_value"),
             let field = mirror as? Field<String> else {

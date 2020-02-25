@@ -1,7 +1,7 @@
 import Vapor
 import Fluent
 
-final public class ThirdPartyJWTTokenAuthenticator<T>: BearerAuthenticator where T: ThirdPartyJWTUserAuthenticationToken {
+final public class JWT3PATokenAuthenticator<T>: BearerAuthenticator where T: JWT3PAUserToken {
     public typealias User = T.User
     
     public func authenticate(bearer: BearerAuthorization, for request: Request) -> EventLoopFuture<T.User?> {
@@ -20,7 +20,7 @@ final public class ThirdPartyJWTTokenAuthenticator<T>: BearerAuthenticator where
     }
 
     public static func guardMiddleware(app: Application) -> RoutesBuilder {
-        return app.grouped(ThirdPartyJWTTokenAuthenticator<T>().middleware())
+        return app.grouped(JWT3PATokenAuthenticator<T>().middleware())
             .grouped(T.User.guardMiddleware())
     }
 }
