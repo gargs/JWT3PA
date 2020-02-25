@@ -41,7 +41,7 @@ final class ProducerToken: Model, Content, ThirdPartyJWTUserAuthenticationToken 
 
 ## User Table
 
-Your user model should conform to `ThirdPartyJWTAuthenticatedUser`, which requires these three properties:
+Your user model should conform to `ThirdPartyJWTAuthenticatedUser` and `Authenticatable`, which requires these three properties:
 
 - google - text column that stores Apple's unique ID
 - apple - text column that stores Google's unique ID
