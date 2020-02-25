@@ -2,26 +2,79 @@ import Vapor
 import Fluent
 import JWTKit
 
-public protocol ThirdPartyJWTAuthenticatedUser: Model {
+public protocol ThirdPartyJWTAuthenticatedUser: Model & Authenticatable {
     associatedtype Token: ThirdPartyJWTUserAuthenticationToken
+    associatedtype UserDTO: ThirdPartyJWTAuthenticationRegisterUserDTO
 
     var google: String? { get set }
     var apple: String? { get set }
+    var active: Bool { get set }
 
-    init?(name: String?, email: String?, apple: String?, google: String?)
+    init?(dto: UserDTO, email: String?, apple: String?, google: String?)
 
     func generateToken(req: Request) -> EventLoopFuture<Token>
 }
 
-public extension ThirdPartyJWTAuthenticatedUser {
-    static func apiTokenForUser(filter: ModelValueFilter<Self>, req: Request) -> EventLoopFuture<Self.Token> {
-        Self.query(on: req.db)
-            .filter(filter)
-            .first()
-            .unwrap(or: Abort(.unauthorized))
-            .flatMap { $0.generateToken(req: req) }
+internal extension ThirdPartyJWTAuthenticatedUser {
+    var _$id: ID<Int> {
+        guard let mirror = Mirror(reflecting: self).descendant("_id"),
+            let id = mirror as? ID<Int> else {
+                fatalError("id property must be declared using @ID")
+        }
+
+        return id
     }
 
+    var _$google: Field<String?> {
+        guard let mirror = Mirror(reflecting: self).descendant("_google"),
+            let field = mirror as? Field<String?> else {
+                fatalError("google property must be declared using @Field")
+        }
+
+        return field
+    }
+
+    var _$apple: Field<String?> {
+        guard let mirror = Mirror(reflecting: self).descendant("_apple"),
+            let field = mirror as? Field<String?> else {
+                fatalError("apple property must be declared using @Field")
+        }
+
+        return field
+    }
+
+    var _$active: Field<Bool> {
+        guard let mirror = Mirror(reflecting: self).descendant("_active"),
+            let field = mirror as? Field<Bool> else {
+                fatalError("active property must be declared using @Field")
+        }
+
+        return field
+    }
+
+    /// Gets the token which the already registered user should use for subsequent API calls.
+    /// - Parameters:
+    ///   - filter: The filter for which column in the user table to query for the user identifier
+    ///   - req: The Vapor `Request` object
+    /// - Returns: The new Bearer token to use.
+    static func apiTokenForUser(filter: ModelValueFilter<Self>, req: Request) -> EventLoopFuture<String> {
+        Self.Token.query(on: req.db)
+            .join(\Self.Token._$user)
+            .with(\Self.Token._$user)
+            .filter(Self.self, filter)
+            .filter(Self.self, \._$active == true)
+            .first()
+            .unwrap(or: Abort(.unauthorized))
+            .map { $0.value }
+    }
+
+    /// Creates a user and their associated token in the database.
+    /// - Parameters:
+    ///   - req: The Vapor `Request`
+    ///   - email: The email address of the new user, if available.
+    ///   - vendor: Which vendor authenticated the new user.
+    ///   - subject: The `sub` claim from the JWT Bearer header
+    /// - Returns: The authentication token to use for subsequent API calls.
     static func createUserAndToken(req: Request,
                                    email: String?,
                                    vendor: ThirdPartyAuthenticationVendor,
@@ -31,7 +84,7 @@ public extension ThirdPartyJWTAuthenticatedUser {
                 throw Abort(.badRequest)
             }
 
-            let dto = try req.content.decode(RegisterUserDTO.self)
+            let dto = try req.content.decode(UserDTO.self)
 
             var apple: String? = nil
             var google: String? = nil
@@ -55,7 +108,7 @@ public extension ThirdPartyJWTAuthenticatedUser {
                         return req.eventLoop.makeFailedFuture(Abort(.badRequest))
                     }
 
-                    guard let user = Self(name: dto.name, email: email, apple: apple, google: google) else {
+                    guard let user = Self(dto: dto, email: email, apple: apple, google: google) else {
                         return req.eventLoop.makeFailedFuture(Abort(.internalServerError))
                     }
 
@@ -70,25 +123,5 @@ public extension ThirdPartyJWTAuthenticatedUser {
         } catch {
             return req.eventLoop.makeFailedFuture(error)
         }
-    }
-}
-
-internal extension ThirdPartyJWTAuthenticatedUser {
-    var _$google: Field<String?> {
-        guard let mirror = Mirror(reflecting: self).descendant("_google"),
-            let field = mirror as? Field<String?> else {
-                fatalError("google property must be declared using @Field")
-        }
-
-        return field
-    }
-
-    var _$apple: Field<String?> {
-        guard let mirror = Mirror(reflecting: self).descendant("_apple"),
-            let field = mirror as? Field<String?> else {
-                fatalError("apple property must be declared using @Field")
-        }
-
-        return field
     }
 }

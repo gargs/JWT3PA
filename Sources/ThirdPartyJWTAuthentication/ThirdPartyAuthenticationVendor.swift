@@ -1,5 +1,5 @@
 import Vapor
 
-public enum ThirdPartyAuthenticationVendor {
+enum ThirdPartyAuthenticationVendor {
     case apple, google
 }
