@@ -1,4 +1,4 @@
-# JWT3PA
+# JWT3PA (JWT Third Party Authentication)
 
 This package wraps the boilerplate that's required when implementing Sign in with Apple and Google to your application.  
 
