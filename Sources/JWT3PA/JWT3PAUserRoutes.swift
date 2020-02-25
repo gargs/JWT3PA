@@ -2,7 +2,7 @@ import Vapor
 import Fluent
 import JWT
 
-open class JWT3PAUserRoutes<T> where T: JWT3PAUser {
+public class JWT3PAUserRoutes<T> where T: JWT3PAUser {
     func appleLogin(req: Request) throws -> EventLoopFuture<String> {
         req.jwt.apple.verify().flatMap { (token: AppleIdentityToken) in
             T.apiTokenForUser(filter: \._$apple == token.subject.value, req: req)
