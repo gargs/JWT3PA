@@ -6,7 +6,7 @@ This package wraps the boilerplate that's required when implementing Sign in wit
 ## Token Table
 
 Your token model should conform to `ThirdPartyJWTUserAuthenticationToken` and the corresponding table 
-should contain at least these two columns:
+should contain at least these two properties:
 
 - value - text column that stores the Bearer Authorization header for this user.
 - user - Reference column to the *user* table
@@ -41,7 +41,7 @@ final class ProducerToken: Model, Content, ThirdPartyJWTUserAuthenticationToken 
 
 ## User Table
 
-Your user model should conform to `ThirdPartyJWTAuthenticatedUser` and the corresponding table should contain at least these three columns:
+Your user model should conform to `ThirdPartyJWTAuthenticatedUser`, which requires these three properties:
 
 - google - text column that stores Apple's unique ID
 - apple - text column that stores Google's unique ID
