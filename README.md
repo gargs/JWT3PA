@@ -119,27 +119,36 @@ struct RegisterUserDTO: JWT3PAUserDTO, Content {
 
 ## Routes
 
-Register your routes by calling one of these two static methods, where `T` is your user type, from `routes.swift:
-
-- `JWT3PAUserRoutes<T>.register(app:protected:)`
-- `JWT3PAUserRoutes<T>.register(routeGroup:protected:)`
-
-These routes will be generated:
+Register your routes by calling `JWT3PAUserRoutes<T>.register(routeGroup:)`, where `T` is your user type, from `routes.swift`.  These routes will be generated:
 
 - /login/apple
 - /login/google
 - /register/apple
 - /register/google
 
-All four routes return a `String` which contains the value to use in subsequent API calls for the Bearer header.  If you use the
-second form of registration shown then the appropriate path prefix will be prepended to the routes. For example:
+All four routes return a `String` which contains the value to use in subsequent API calls for the Bearer header.  For example:
 
 ```swift
 func routes(_ app: Application) throws {
-    let tokenProtected = JWT3PATokenAuthenticator<ProducerToken>.guardMiddleware(app: app)
-
     let users = app.grouped("users");
-    JWT3PAUserRoutes<T>.register(routeGroup: users, protected: tokenProtected)
+    JWT3PAUserRoutes<T>.register(routeGroup: users)
 }
 ```
+
+### Route Protection
+
+You can get a guarded middleware to use on all your routes that will check against the Bearer token stored in your token table
+by calling this method:
+
+```swift
+let tokenProtected = JWT3PATokenAuthenticator<ProducerToken>.guardMiddleware(app: app)
+```
+
+If used it will prevent any route from being hit without the Bearer token being valid.  You can get the authenticated user via
+normal Vapor authentication query:
+
+```swift
+let user = try req.auth.require(Producer.self)
+```
+
 

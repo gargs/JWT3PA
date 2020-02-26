@@ -21,38 +21,20 @@ public class JWT3PAUserRoutes<T> where T: JWT3PAUser {
         }
     }
 
-    func bob(req: Request) throws -> EventLoopFuture<String> {
-        T.apiTokenForUser(filter: \._$apple == "000685.e20f8c18643842e092f21efbbbc92483.1825", req: req)
-    }
-
     func googleRegister(req: Request) throws -> EventLoopFuture<String> {
         return req.jwt.google.verify().flatMap { (token: GoogleIdentityToken) in
             T.createUserAndToken(req: req, email: token.email, vendor: .google, subject: token.subject)
         }
     }
 
-    public static func register(routeGroup: RoutesBuilder, protected: RoutesBuilder) {
+    public static func register(routeGroup: RoutesBuilder) {
         let me = JWT3PAUserRoutes<T>()
 
         routeGroup.post("register", "apple", use: me.appleRegister)
         routeGroup.post("register", "google", use: me.googleRegister)
-        routeGroup.get("bob", use: me.bob)
-        
-        let login = protected.grouped("login")
-        login.post("apple", use: me.appleLogin)
-        login.post("google", use: me.googleLogin)
-    }
 
-    public static func register(app: Application, protected: RoutesBuilder) {
-        let me = JWT3PAUserRoutes<T>()
-
-        app.post("register", "apple", use: me.appleRegister)
-        app.post("register", "google", use: me.googleRegister)
-        app.get("bob", use: me.bob)
-        
-        let login = protected.grouped("login")
-        login.post("apple", use: me.appleLogin)
-        login.post("google", use: me.googleLogin)
+        routeGroup.post("login", "apple", use: me.appleLogin)
+        routeGroup.post("login", "google", use: me.googleLogin)
     }
 
     private init() {}
