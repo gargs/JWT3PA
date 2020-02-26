@@ -32,7 +32,7 @@ public class JWT3PAUserRoutes<T> where T: JWT3PAUser {
     }
 
     public static func register(routeGroup: RoutesBuilder, protected: RoutesBuilder) {
-        let me = Self()
+        let me = JWT3PAUserRoutes<T>()
 
         routeGroup.post("register", "apple", use: me.appleRegister)
         routeGroup.post("register", "google", use: me.googleRegister)
@@ -44,7 +44,7 @@ public class JWT3PAUserRoutes<T> where T: JWT3PAUser {
     }
 
     public static func register(app: Application, protected: RoutesBuilder) {
-        let me = Self()
+        let me = JWT3PAUserRoutes<T>()
 
         app.post("register", "apple", use: me.appleRegister)
         app.post("register", "google", use: me.googleRegister)
