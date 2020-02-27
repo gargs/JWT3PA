@@ -19,7 +19,7 @@ For example, you might have this:
 final class ProducerToken: Model, Content, JWT3PAUserToken {
     static let schema = "producer_tokens"
 
-    @ID(key: "id")
+    @ID(custom: "id")
     var id: Int?
 
     @Field(key: "value")
@@ -53,7 +53,7 @@ example of a full user:
 final class Producer: Model, Content, JWT3PAUser, Authenticatable {
     static let schema = "producers"
 
-    @ID(key: "id")
+    @ID(custom: "id")
     var id: Int?
 
     @Field(key: "name")

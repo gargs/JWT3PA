@@ -3,7 +3,7 @@ import Fluent
 import JWTKit
 
 public protocol JWT3PAUser: Model & Authenticatable {
-    associatedtype Token: JWT3PAUserToken
+    associatedtype Token: JWT3PAUserToken where Token.IDValue == Self.IDValue
     associatedtype UserDTO: JWT3PAUserDTO
 
     var google: String? { get set }
@@ -16,9 +16,9 @@ public protocol JWT3PAUser: Model & Authenticatable {
 }
 
 internal extension JWT3PAUser {
-    var _$id: ID<Int> {
+    var _$id: ID<Self.IDValue> {
         guard let mirror = Mirror(reflecting: self).descendant("_id"),
-            let id = mirror as? ID<Int> else {
+            let id = mirror as? ID<Self.IDValue> else {
                 fatalError("id property must be declared using @ID")
         }
 
@@ -58,9 +58,9 @@ internal extension JWT3PAUser {
     ///   - req: The Vapor `Request` object
     /// - Returns: The new Bearer token to use.
     static func apiTokenForUser(filter: ModelValueFilter<Self>, req: Request) -> EventLoopFuture<String> {
-        Self.Token.query(on: req.db)
-            .join(JWT3PAUser.self, on: \Self.Token._$user.$id == \JWT3PAUser._$id)
-            .with(\Self.Token._$user)
+        Token.query(on: req.db)
+            .join(Self.self, on: \Token._$user.$id == \Self._$id)
+            .with(\Token._$user)
             .filter(Self.self, filter)
             .filter(Self.self, \._$active == true)
             .first()

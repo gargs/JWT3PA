@@ -2,7 +2,7 @@ import Vapor
 import Fluent
 
 public protocol JWT3PAUserToken: Model {
-    associatedtype User: Model & Authenticatable
+    associatedtype User: Model & Authenticatable where User.IDValue == Self.IDValue
 
     var value: String { get set }
     var user: User { get set }
