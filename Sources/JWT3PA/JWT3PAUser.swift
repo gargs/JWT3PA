@@ -59,7 +59,7 @@ internal extension JWT3PAUser {
     /// - Returns: The new Bearer token to use.
     static func apiTokenForUser(filter: ModelValueFilter<Self>, req: Request) -> EventLoopFuture<String> {
         Self.Token.query(on: req.db)
-            .join(\Self.Token._$user)
+            .join(JWT3PAUser.self, on: \Self.Token._$user.$id == \JWT3PAUser._$id)
             .with(\Self.Token._$user)
             .filter(Self.self, filter)
             .filter(Self.self, \._$active == true)
