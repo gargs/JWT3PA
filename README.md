@@ -42,8 +42,8 @@ final class ProducerToken: Model, Content, JWT3PAUserToken {
 
 Your user model should conform to `JWT3PAUser` and `Authenticatable`, which requires these three properties:
 
-- google - text column that stores Apple's unique ID
-- apple - text column that stores Google's unique ID
+- google - text column that stores Google's unique ID
+- apple - text column that stores Apple's unique ID
 - active - boolean column that identifies whether the user is active or not
 
 You'll also need a method to generate the appropriate *token* that you wish to use for the Bearer header.  Here's an
