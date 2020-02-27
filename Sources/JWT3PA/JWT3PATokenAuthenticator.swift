@@ -19,8 +19,11 @@ final public class JWT3PATokenAuthenticator<T>: BearerAuthenticator where T: JWT
         }
     }
 
-    public static func guardMiddleware(app: Application) -> RoutesBuilder {
-        return app.grouped(JWT3PATokenAuthenticator<T>().middleware())
+    /// Creates a guard middleware which will ensure an authenticated user is present on the route.
+    /// - Parameter group: Either the `Application` or a `RoutesBuilder` group.
+    /// - Returns:A new `RoutesBuilder` group which is protected.
+    public static func guardMiddleware(for group: RoutesBuilder) -> RoutesBuilder {
+        return group.grouped(JWT3PATokenAuthenticator<T>().middleware())
             .grouped(T.User.guardMiddleware())
     }
 }
